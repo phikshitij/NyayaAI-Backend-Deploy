@@ -30,7 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # Load everything ONCE at startup
-model = SentenceTransformer("legal_section_model")
+model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 section_embeddings = torch.load("section_embeddings.pt")
 df = pd.read_csv("sections_df.csv")
 
