@@ -56,7 +56,7 @@ def confidence(score):
     return "Low"
 
 @app.post("/predict")
-def predict_sections(req: ComplaintRequest):
+async def predict_sections(req: ComplaintRequest):
     # Ensure models are loaded
     load_models()
     
