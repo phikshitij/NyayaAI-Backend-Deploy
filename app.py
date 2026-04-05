@@ -1,12 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import torch
-import pandas as pd
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 from fastapi.middleware.cors import CORSMiddleware
-
 import os
 
 app = FastAPI(title="NyayaAI ML Service")
@@ -36,11 +30,28 @@ torch.set_num_threads(1)
 model = None
 section_embeddings = None
 df = None
+cosine_similarity_fn = None
+torch_module = None
+np_module = None
 
 def load_models():
-    """Lazily load models into memory ONLY when the first request hits to bypass instance booting timeouts."""
-    global model, section_embeddings, df
+    """Lazily load heavy ML libraries and models into memory ONLY when the first request hits to completely bypass instance booting timeouts."""
+    global model, section_embeddings, df, cosine_similarity_fn, torch_module, np_module
     if model is None:
+        print("Lazy loading heavy ML libraries...")
+        import torch
+        import pandas as pd
+        import numpy as np
+        from sentence_transformers import SentenceTransformer
+        from sklearn.metrics.pairwise import cosine_similarity
+        
+        # Limit PyTorch CPU threads to prevent silent OOM (Out Of Memory) crashes on free tiers
+        torch.set_num_threads(1)
+        
+        torch_module = torch
+        np_module = np
+        cosine_similarity_fn = cosine_similarity
+
         print("Lazy loading ML models into memory...")
         model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
         section_embeddings = torch.load("section_embeddings.pt")
@@ -65,12 +76,12 @@ def predict_sections(req: ComplaintRequest):
     
     emb = model.encode(req.complaint, convert_to_tensor=True)
 
-    sims = cosine_similarity(
+    sims = cosine_similarity_fn(
         emb.cpu().numpy().reshape(1, -1),
         section_embeddings.cpu().numpy()
     )[0]
 
-    top_idx = np.argsort(sims)[-req.top_k:][::-1]
+    top_idx = np_module.argsort(sims)[-req.top_k:][::-1]
 
     results = []
     for i in top_idx:
