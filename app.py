@@ -32,10 +32,20 @@ app.add_middleware(
 # Limit PyTorch CPU threads to prevent silent OOM (Out Of Memory) crashes on free tiers
 torch.set_num_threads(1)
 
-# Load everything ONCE at startup
-model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
-section_embeddings = torch.load("section_embeddings.pt")
-df = pd.read_csv("sections_df.csv")
+# Lazy load variables
+model = None
+section_embeddings = None
+df = None
+
+def load_models():
+    """Lazily load models into memory ONLY when the first request hits to bypass instance booting timeouts."""
+    global model, section_embeddings, df
+    if model is None:
+        print("Lazy loading ML models into memory...")
+        model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+        section_embeddings = torch.load("section_embeddings.pt")
+        df = pd.read_csv("sections_df.csv")
+        print("ML models loaded successfully!")
 
 class ComplaintRequest(BaseModel):
     complaint: str
@@ -50,6 +60,9 @@ def confidence(score):
 
 @app.post("/predict")
 def predict_sections(req: ComplaintRequest):
+    # Ensure models are loaded
+    load_models()
+    
     emb = model.encode(req.complaint, convert_to_tensor=True)
 
     sims = cosine_similarity(
