@@ -39,7 +39,7 @@ def load_models():
         cosine_similarity_fn = cosine_similarity
 
         print("Lazy loading ML models into memory...")
-        model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
+        model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
         section_embeddings = torch.load("section_embeddings.pt")
         df = pd.read_csv("sections_df.csv")
         print("ML models loaded successfully!")
