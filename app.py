@@ -29,6 +29,9 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],  # Restrict to required methods only
     allow_headers=["*"],
 )
+# Limit PyTorch CPU threads to prevent silent OOM (Out Of Memory) crashes on free tiers
+torch.set_num_threads(1)
+
 # Load everything ONCE at startup
 model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 section_embeddings = torch.load("section_embeddings.pt")
