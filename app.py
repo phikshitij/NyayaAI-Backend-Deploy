@@ -23,8 +23,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],  # Restrict to required methods only
     allow_headers=["*"],
 )
-# Limit PyTorch CPU threads to prevent silent OOM (Out Of Memory) crashes on free tiers
-torch.set_num_threads(1)
 
 # Lazy load variables
 model = None
