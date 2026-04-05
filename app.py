@@ -34,9 +34,6 @@ def load_models():
         from sentence_transformers import SentenceTransformer
         from sklearn.metrics.pairwise import cosine_similarity
         
-        # Limit PyTorch CPU threads to prevent silent OOM (Out Of Memory) crashes on free tiers
-        torch.set_num_threads(1)
-        
         torch_module = torch
         np_module = np
         cosine_similarity_fn = cosine_similarity
