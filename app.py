@@ -5,22 +5,13 @@ import os
 
 app = FastAPI(title="NyayaAI ML Service")
 
-# Best practice for production deployment: 
-# Instead of ["*"], explicitly whitelist your frontend domains
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Local development frontend
-    "http://localhost:4173",  # Local production preview
-    os.getenv("FRONTEND_URL", ""), # Dynamic production URL via environment variable
-    # Add your actual production domain here manually if preferred, e.g.,
-    # "https://my-nyaya-project.vercel.app"
-]
-
-# Add this BEFORE your routes
+# Add this BEFORE your routes. 
+# Using wildcard origins since this is a public stateless ML endpoint
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin for origin in ALLOWED_ORIGINS if origin],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],  # Restrict to required methods only
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
